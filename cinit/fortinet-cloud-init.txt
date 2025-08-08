@@ -1,0 +1,133 @@
+Content-Type: multipart/mixed; boundary="===============6787820088060553583=="
+MIME-Version: 1.0
+
+--===============6787820088060553583==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="/openstack/latest/user_data"
+
+config sys interface
+  edit port1
+    set mode dhcp
+    set defaultgw enable
+    set allowaccess http https ssh ping telnet
+  next
+  edit port2
+    set mode dhcp
+    set defaultgw enable
+    set allowaccess http https ssh ping telnet
+  next
+  edit port3
+    set mode static
+    set ip 10.10.0.1 255.255.255.0
+    set allowaccess http https ssh ping telnet
+  next
+  edit port4
+    set mode static
+    set ip 10.11.0.1 255.255.255.0
+    set allowaccess http https ssh ping telnet
+  next
+end
+config firewall policy
+    edit 1
+        set name "PORT3-TO-INT"
+        set srcintf "port3"
+        set dstintf "port1"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+        set nat enable
+    next
+    edit 2
+        set name "PORT4-TO-INT"
+        set srcintf "port4"
+        set dstintf "port1"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+        set nat enable
+    next
+    edit 3
+        set name "PORT3-TO-PORT4"
+        set srcintf "port3"
+        set dstintf "port4"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+    edit 4
+        set name "PORT4-TO-PORT3"
+        set srcintf "port4"
+        set dstintf "port3"
+        set action accept
+        set srcaddr "all"
+        set dstaddr "all"
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+    edit 5
+        set name "Allow_HTTP_to_Web"
+        set srcintf "port1"
+        set dstintf "port4"                  # Replace with your actual LAN interface name
+        set srcaddr "all"
+        set dstaddr "vip-http-web"           # VIP object created above
+        set action accept
+        set schedule "always"
+        set service "HTTP"
+        set logtraffic all
+    next
+end
+config firewall vip
+    edit "vip-http-web"
+        set comment "DNAT to demo web app"
+        set extip 172.16.8.178            # Public IP (external IP)
+        set extintf "port1"                 # External interface
+        set mappedip "10.11.0.11"        # Internal IP (real server IP)
+        set portforward enable
+        set extport 80                     # External port (HTTP)
+        set mappedport 8080                # Internal port
+    next
+end
+config sys dns
+  set primary 1.1.1.1
+  set secondary 1.0.0.1
+end
+config sys global
+  set hostname DEMO-FW-1
+end
+config system admin
+  edit admin
+    set password P@ssword123 
+end
+
+--===============6787820088060553583==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="/openstack/latest/meta_data.json"
+
+{
+"instance-id": "ZED-DEMO-FW",
+"local-hostname": "ZED-DEMO-FW"
+}
+
+--===============6787820088060553583==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="openstack/content/0000"
+
+<license goes here>
+
+--===============6787820088060553583==--
